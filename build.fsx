@@ -3,6 +3,7 @@
 open System
 open System.IO
 open Fake
+open Fake.Testing
 open Fake.AssemblyInfoFile
 
 // Properties
@@ -17,7 +18,12 @@ Target "Clean" (fun _ ->
     CleanDir buildDir
 )
 
-Target "Default" (fun _ ->
+Target "Test" (fun _ ->
+    !! (buildDir @@ "FSharp.SSEClient.Tests.dll")
+      |> NUnit3 (fun p -> {p with ResultSpecs = [currentDirectory @@ "TestResult.xml;format=nunit2"]})
+)
+
+Target "Build" (fun _ ->
 
     CreateFSharpAssemblyInfo "./src/AssemblyInfo.fs"
         [Attribute.Title "FSharp.SSEClient"
@@ -33,6 +39,7 @@ Target "Default" (fun _ ->
 
 // Dependencies
 "Clean"
-  ==> "Default"
+  ==> "Build"
+  ==> "Test"
 // start build
-RunTargetOrDefault "Default"
+RunTargetOrDefault "Test"
