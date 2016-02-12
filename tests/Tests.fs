@@ -7,9 +7,9 @@ open NUnit.Framework.Constraints
 open FsUnit
 open System.Reactive.Linq
 open System.Reactive.Disposables
-open FSharp.Control.Reactive
 open FSharp.SSEClient
 open FSharp.SSEClient.SSEConnection
+open FSharp.Control.Reactive.Observable
 
 module Main =
 
@@ -45,12 +45,12 @@ data: GOOG:533.95
 
   [<Test>]
   let ``Last received event is as expected``() =
-    let m = obs () |> Observable.wait
+    let m = obs () |> wait
     m |> should equal {Data = Some "GOOG:533.95";EventName = None;Id = Some "5";Retry = None}   
     
   [<Test>]
   let ``First received event is as expected``() =
-    let m = obs () |> Observable.first |> Observable.wait
+    let m = obs () |> first |> wait
     m |> should equal {Data = Some "GOOG:533.37";EventName = None;Id = Some "0";Retry = None}               
     
     

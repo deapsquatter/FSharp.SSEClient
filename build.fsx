@@ -8,6 +8,7 @@ open Fake.AssemblyInfoFile
 
 // Properties
 let buildDir = "./build/"
+let testDir = "./test/"
 
 //http://semver.org
 let version =
@@ -16,14 +17,21 @@ let version =
 // Targets
 Target "Clean" (fun _ ->
     CleanDir buildDir
+    CleanDir testDir
+)
+
+Target "BuildTest" (fun _ ->
+    !! "tests/FSharp.SSEClient.Tests.fsproj"
+        |> MSBuildDebug testDir "Build"
+        |> Log "App-Output: "
 )
 
 Target "Test" (fun _ ->
-    !! (buildDir @@ "FSharp.SSEClient.Tests.dll")
+    !! (testDir @@ "FSharp.SSEClient.Tests.dll")
       |> NUnit3 (fun p -> {p with ResultSpecs = [currentDirectory @@ "TestResult.xml;format=nunit2"]})
 )
 
-Target "Build" (fun _ ->
+Target "BuildSSEClient" (fun _ ->
 
     CreateFSharpAssemblyInfo "./src/AssemblyInfo.fs"
         [Attribute.Title "FSharp.SSEClient"
@@ -32,14 +40,15 @@ Target "Build" (fun _ ->
          Attribute.Version version
          Attribute.FileVersion version]
 
-    !! "**/*.*sproj"
+    !! "src/FSharp.SSEClient.Tests.fsproj"
       |> MSBuildRelease buildDir "Build"
       |> Log "AppBuild-Output: "
 )
 
 // Dependencies
 "Clean"
-  ==> "Build"
+  ==> "BuildSSEClient"
+  ==> "BuildTest" 
   ==> "Test"
 // start build
 RunTargetOrDefault "Test"

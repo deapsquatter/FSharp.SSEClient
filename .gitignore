@@ -2,7 +2,10 @@
 build
 src/bin
 src/obj
+tests/bin
+tests/obj
 src/AssemblyInfo.fs
 packages
 paket.lock
 .paket/paket.exe
+test
