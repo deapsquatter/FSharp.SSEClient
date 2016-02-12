@@ -1,7 +1,6 @@
 ﻿namespace FSharp.SSEClient
 
 open System
-open System.Collections.Generic
 open System.IO
 open System.Reactive.Disposables  
 open System.Reactive.Linq
@@ -10,7 +9,7 @@ open FSharp.Control.Reactive
 module SSEConnection =
   
   type SSEEvent = 
-    {Data:string option; EventName:string option; Id:string option; Retry : int option} 
+    {Data:string option; EventName:string option; Id:string option; Retry:int option} 
      static member None = {Data = None;EventName = None;Id = None; Retry = None}
   
   let dataAppend s1 s2 = 
@@ -41,7 +40,7 @@ module SSEConnection =
       |DispatchReady p -> p
     member x.IsReady() =
       match x with
-        |DispatchReady _ -> true |_ -> false 
+      |DispatchReady _ -> true |_ -> false 
   
   let toLine (str:string) =
     let nv = match str.Split([|':'|],2) with
@@ -58,13 +57,13 @@ module SSEConnection =
   
   let processLines (obs:IObservable<_>) =
     obs |> Observable.scanInit (Processing [])
-      (fun e l ->  let ps = 
-                     match e with
-                       |DispatchReady _ -> Processing []
-                       |Processing _ -> e
-                   match l |> toLine with 
-                    |None -> DispatchReady <| (ps.Unwrap() |> List.rev)
-                    |Some li -> Processing <| li::ps.Unwrap()) 
+      (fun e l -> let ps = 
+                    match e with
+                    |DispatchReady _ -> Processing []
+                    |Processing _ -> e
+                  match l |> toLine with 
+                  |None -> DispatchReady <| (ps.Unwrap() |> List.rev)
+                  |Some li -> Processing <| li::ps.Unwrap()) 
   
   let startDisposable (op:Async<unit>) =
     let ct = new System.Threading.CancellationTokenSource()
@@ -75,8 +74,8 @@ module SSEConnection =
   let receive (network:Stream) =
     let rec read (observer:IObserver<_>) (sr:StreamReader) = async {
       match (sr.ReadLine()) with
-        | null -> observer.OnCompleted() 
-        | line -> observer.OnNext line
+      | null -> observer.OnCompleted() 
+      | line -> observer.OnNext line
       return! read observer sr}
     let start obs = async {
       try
@@ -84,8 +83,8 @@ module SSEConnection =
         return! read obs sr
       with |e -> obs.OnError e}
     Observable.Create (start >> startDisposable)
-        |> Observable.filter (fun s -> not <| s.StartsWith(":")) 
-        |> processLines
-        |> Observable.filter (fun t -> t.IsReady())
-        |> Observable.map (fun t -> t.Unwrap() |> SSELine.Fold)
+      |> Observable.filter (fun s -> not <| s.StartsWith(":")) 
+      |> processLines
+      |> Observable.filter (fun t -> t.IsReady())
+      |> Observable.map (fun t -> t.Unwrap() |> SSELine.Fold)
 
