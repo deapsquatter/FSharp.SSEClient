@@ -1,0 +1,8 @@
+redirects: on
+
+source https://www.nuget.org/api/v2/
+framework >= net40
+
+nuget FSharp.Core ~> 4
+nuget FAKE
+nuget FSharp.Control.Reactive
