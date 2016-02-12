@@ -41,6 +41,10 @@ module SSEConnection =
     member x.IsReady() =
       match x with
       |DispatchReady _ -> true |_ -> false 
+      
+  let unwrap (ps:SSEProcessingState) = ps.Unwrap()
+  
+  let isReady (ps:SSEProcessingState) = ps.IsReady()
   
   let toLine (str:string) =
     let nv = match str.Split([|':'|],2) with
@@ -85,6 +89,6 @@ module SSEConnection =
     Observable.Create (start >> startDisposable)
       |> Observable.filter (fun s -> not <| s.StartsWith(":")) 
       |> processLines
-      |> Observable.filter (fun t -> t.IsReady())
-      |> Observable.map (fun t -> t.Unwrap() |> SSELine.Fold)
+      |> Observable.filter isReady
+      |> Observable.map (unwrap >> SSELine.Fold)
 
