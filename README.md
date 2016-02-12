@@ -1,2 +1,2 @@
 # FSharp.SSE
-Server-Sent Events Client
+Server-Sent Events(SSE) Client
