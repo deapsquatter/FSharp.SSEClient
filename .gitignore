@@ -2,6 +2,7 @@
 build
 src/bin
 src/obj
+src/AssemblyInfo.fs
 packages
 paket.lock
 .paket/paket.exe
