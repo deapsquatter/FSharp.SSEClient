@@ -10,4 +10,7 @@ let s = Http.RequestStream("http://demo.howopensource.com/sse/stocks.php")
 SSEConnection.receive s.ResponseStream 
   |> Observable.subscribeWithError (printfn "SSE Event=%A") (fun e -> printfn "Error=%s" (e.Message))
 ```
+## Building
+* Windows: Run *build.cmd* 
+* Mono: Run *build.sh*
  
