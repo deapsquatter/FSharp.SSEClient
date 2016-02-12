@@ -44,8 +44,8 @@ module SSEConnection =
   
   let toLine (str:string) =
     let nv = match str.Split([|':'|],2) with
-               |[|n;v|] -> [|n;v.TrimStart()|]
-               |s -> s
+             |[|n;v|] -> [|n;v.TrimStart()|]
+             |s -> s
     match nv with
     |[|"event";v|] -> Some (Event (Some v))
     |[|"data";v|] -> Some (Data (Some v))
