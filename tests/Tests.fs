@@ -33,16 +33,24 @@ data: GOOG:533.95
 
 "  
 
-  [<Test>]
-  let ``Last received event is as expected``() =
+  let stream () =
     let stream = new MemoryStream()
-    use writer = new StreamWriter(stream)
+    let writer = new StreamWriter(stream)
     writer.Write ``sample sse stream``
     writer.Flush()
-    stream.Position <- 0L
-    
-    let obs = SSEConnection.receive stream
+    stream.Position <- 0L  
+    stream
+
+  [<Test>]
+  let ``Last received event is as expected``() =
+    let obs = SSEConnection.receive (stream ())
     let m = obs |> Observable.wait
-    m |> should equal {Data = Some "GOOG:533.95";EventName = None;Id = Some "5";Retry = None}         
+    m |> should equal {Data = Some "GOOG:533.95";EventName = None;Id = Some "5";Retry = None}   
+    
+  [<Test>]
+  let ``First received event is as expected``() =
+    let obs = SSEConnection.receive (stream ()) |> Observable.first
+    let m = obs |> Observable.wait
+    m |> should equal {Data = Some "GOOG:533.37";EventName = None;Id = Some "0";Retry = None}               
     
     
