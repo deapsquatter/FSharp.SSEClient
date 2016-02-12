@@ -1,5 +1,5 @@
-# FSharp.SSE
-The Server-Sent Events(SSE) Library (`FSharp.SSEClient`) implements a client for reading events typically over Http. The library aims to conform (as close as possible) to the [SSE Specification](https://www.w3.org/TR/eventsource/).
+# FSharp SSE Client: Library for reading Server-Sent Events (SSE)
+The library (`FSharp.SSEClient`) implements a client for reading events typically over Http (although you can use any stream you like). The library aims to conform (as close as possible) to the [SSE Specification](https://www.w3.org/TR/eventsource/).
 ## Example Usage
 The SSE Client is implemented as an Observable. This makes it handy to compose your events using RX.
 ```csharp
