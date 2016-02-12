@@ -35,7 +35,7 @@ data: GOOG:533.95
 
   let stream () =
     let stream = new MemoryStream()
-    let writer = new StreamWriter(stream)
+    let writer = new StreamWriter(stream,Encoding.UTF8)
     writer.Write ``sample sse stream``
     writer.Flush()
     stream.Position <- 0L  
