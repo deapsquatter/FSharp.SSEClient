@@ -1,0 +1,7 @@
+.fake
+build
+src/bin
+src/obj
+packages
+paket.lock
+.paket/paket.exe
