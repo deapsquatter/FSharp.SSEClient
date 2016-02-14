@@ -9,7 +9,7 @@ open FSharp.Control.Reactive
 module SSEConnection =
   
   type SSEEvent = 
-    {Data:string option; EventName:string option; Id:string option; Retry:int option} 
+    {Data:string option; EventName:string option; Id:string option; Retry:UInt32 option} 
      static member None = {Data = None;EventName = None;Id = None; Retry = None}
   
   let dataAppend s1 s2 = 
@@ -20,7 +20,7 @@ module SSEConnection =
     | Event of string option 
     | Data of string option  
     | Id of string  
-    | Retry of int 
+    | Retry of UInt32 
     static member Fold(s) =
       s |> Seq.fold 
         (fun e l -> 
@@ -54,20 +54,27 @@ module SSEConnection =
     |[|"event";v|] -> Some (Event (Some v))
     |[|"data";v|] -> Some (Data (Some v))
     |[|"id";v|] -> Some (Id v)
-    |[|"retry";v|] when fst (Int32.TryParse v) -> Some <| Retry (Int32.Parse v)
+    |[|"retry";v|] when fst (UInt32.TryParse v) -> Some <| Retry (UInt32.Parse v)
     |[|"event"|] -> Some (Event None)     
     |[|"data"|] -> Some (Data None)      
     |_ -> None
-  
+    
+  let getIdLine lines =
+    lines |> List.tryFindBack 
+      (fun t -> match t with |Retry _ -> true|_ -> false) 
+      
+  module List =
+    let ofOption t = match t with Some s -> [s] |_ -> []
+      
   let processLines (obs:IObservable<_>) =
     obs |> Observable.scanInit (Processing [])
-      (fun e l -> let ps = 
+      (fun e l -> let lines =
                     match e with
-                    |DispatchReady _ -> Processing []
-                    |Processing _ -> e
+                    |DispatchReady x -> List.ofOption (getIdLine x)
+                    |Processing x -> x
                   match l |> toLine with 
-                  |None -> DispatchReady <| (ps.Unwrap() |> List.rev)
-                  |Some li -> Processing <| li::ps.Unwrap()) 
+                  |None -> DispatchReady <| (lines |> List.rev)
+                  |Some li -> Processing <| li::lines) 
   
   let startDisposable (op:Async<unit>) =
     let ct = new System.Threading.CancellationTokenSource()
@@ -91,4 +98,3 @@ module SSEConnection =
       |> processLines
       |> Observable.filter isReady
       |> Observable.map (unwrap >> SSELine.Fold)
-

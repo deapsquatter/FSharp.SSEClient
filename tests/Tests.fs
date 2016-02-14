@@ -18,17 +18,23 @@ data: GOOG:533.37
 
 id: 1
 data: MSFT:47.59
+retry: 10000
 
 id: 2
 data: IBM:162.99
 
 id: 3
 data: AAPL:114.12
+retry: 11000
 
 id: 4
 data: MSFT:47.29
 
 id: 5
+data: GOOG:400.00
+data: MoreData
+
+id: 6
 data: GOOG:533.95
 
 "  
@@ -42,11 +48,16 @@ data: GOOG:533.95
     stream
     
   let obs () = SSEConnection.receive (stream ())
+  
+  [<Test>]
+  let ``Added Data``() =
+    let m = obs () |> take 6 |> wait
+    m |> should equal {Data = Some "GOOG:400.00\nMoreData";EventName = None;Id = Some "5";Retry = Some 11000u}   
 
   [<Test>]
   let ``Last received event is as expected``() =
     let m = obs () |> wait
-    m |> should equal {Data = Some "GOOG:533.95";EventName = None;Id = Some "5";Retry = None}   
+    m |> should equal {Data = Some "GOOG:533.95";EventName = None;Id = Some "6";Retry = Some 11000u}   
     
   [<Test>]
   let ``First received event is as expected``() =
