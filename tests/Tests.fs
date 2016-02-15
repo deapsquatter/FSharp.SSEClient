@@ -45,9 +45,9 @@ data: GOOG:533.95
     writer.Write ``sample sse stream``
     writer.Flush()
     stream.Position <- 0L  
-    stream
+    stream :> Stream
     
-  let obs () = SSEConnection.receive (stream ())
+  let obs () = SSEConnection.receive stream None
   
   [<Test>]
   let ``Added Data``() =
@@ -62,6 +62,6 @@ data: GOOG:533.95
   [<Test>]
   let ``First received event is as expected``() =
     let m = obs () |> first |> wait
-    m |> should equal {Data = Some "GOOG:533.37";EventName = None;Id = Some "0";Retry = None}               
+    m |> should equal {Data = Some "GOOG:533.37";EventName = None;Id = Some "0";Retry = None}             
     
     

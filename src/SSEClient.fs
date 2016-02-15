@@ -81,8 +81,15 @@ module SSEConnection =
     Async.Start(op, ct.Token)
     { new IDisposable with 
         member __.Dispose() = ct.Cancel() }  
+        
+  let repeatInfinite (delay:TimeSpan) (src:IObservable<_>) = seq{
+    yield src
+    while true do yield src.DelaySubscription(delay)}      
   
-  let receive (network:Stream) =
+  let retryAfterDelay (delay:TimeSpan) (src:IObservable<_>)  =
+    src |> repeatInfinite delay |> Observable.catchSeq
+        
+  let receive (network:unit -> Stream) (retryTime:TimeSpan option) =
     let rec read (observer:IObserver<_>) (sr:StreamReader) = async {
       match (sr.ReadLine()) with
       | null -> observer.OnCompleted() 
@@ -90,7 +97,7 @@ module SSEConnection =
       return! read observer sr}
     let start obs = async {
       try
-        let sr = new StreamReader(network)
+        let sr = new StreamReader(network ())
         return! read obs sr
       with |e -> obs.OnError e}
     Observable.Create (start >> startDisposable)
@@ -98,3 +105,4 @@ module SSEConnection =
       |> processLines
       |> Observable.filter isReady
       |> Observable.map (unwrap >> SSELine.Fold)
+      |> retryAfterDelay (defaultArg retryTime (TimeSpan.FromSeconds 0.))
