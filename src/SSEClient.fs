@@ -97,7 +97,7 @@ module SSEConnection =
       return! read observer sr}
     let start obs = async {
       try
-        let sr = new StreamReader(network ())
+        use sr = new StreamReader(network ())
         return! read obs sr
       with |e -> obs.OnError e}
     Observable.Create (start >> startDisposable)
