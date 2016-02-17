@@ -13,4 +13,16 @@ Connection.Receive s.ResponseStream
 ## Building
 * Windows: Run *build.cmd* 
 * Mono: Run *build.sh*
+
+## Using with PAKET
+`FSharp.SSEClient` can easily be linked as a single file using the PAKET dependency manager. Simply add the following to your `paket.dependencies` file:
+```csharp
+group SSE
+   github deapsquatter/FSharp.SSEClient /src/SSEClient.fs
+```
+and to your projects `paket.references` file:
+```csharp
+group SSE
+    File:SSEClient.fs
+```
  
