@@ -8,7 +8,6 @@ open FsUnit
 open System.Reactive.Linq
 open System.Reactive.Disposables
 open FSharp.SSEClient
-open FSharp.SSEClient.SSEConnection
 open FSharp.Control.Reactive.Observable
 
 module Main =
@@ -47,21 +46,21 @@ data: GOOG:533.95
     stream.Position <- 0L  
     stream :> Stream
     
-  let obs () = SSEConnection.receive stream None
+  let obs () = Connection.Receive stream
   
   [<Test>]
   let ``Added Data``() =
     let m = obs () |> take 6 |> wait
-    m |> should equal {Data = Some "GOOG:400.00\nMoreData";EventName = None;Id = Some "5";Retry = Some 11000u}   
+    m |> should equal {Data = Some <| SSEData "GOOG:400.00\nMoreData";EventName = None;Id = Some "5";Retry = Some 11000u}   
 
   [<Test>]
   let ``Last received event is as expected``() =
     let m = obs () |> wait
-    m |> should equal {Data = Some "GOOG:533.95";EventName = None;Id = Some "6";Retry = Some 11000u}   
+    m |> should equal {Data = Some <| SSEData "GOOG:533.95";EventName = None;Id = Some "6";Retry = Some 11000u}   
     
   [<Test>]
   let ``First received event is as expected``() =
     let m = obs () |> first |> wait
-    m |> should equal {Data = Some "GOOG:533.37";EventName = None;Id = Some "0";Retry = None}             
+    m |> should equal {Data = Some <| SSEData "GOOG:533.37";EventName = None;Id = Some "0";Retry = None}             
     
     
