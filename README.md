@@ -8,7 +8,7 @@ open FSharp.Data
 
 let s = Http.RequestStream("http://demo.howopensource.com/sse/stocks.php")
 Connection.Receive s.ResponseStream
-  |> Observable.subscribeWithError (printfn "SSE Event=%A") (fun e -> printfn "Error=%s" (e.Message))
+  |> Observable.subscribe (printfn "SSE Event=%A")
 ```
 ## Building
 * Windows: Run *build.cmd* 
