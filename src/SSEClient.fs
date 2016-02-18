@@ -2,7 +2,6 @@
 
 open System
 open System.IO
-open System.Reactive.Disposables  
 open System.Reactive.Linq
 open FSharp.Control.Reactive
      
@@ -37,8 +36,7 @@ open FSharp.Control.Reactive
       |_ -> None  
  
     let getIdLine lines =
-      lines |> List.tryFindBack 
-        (fun t -> match t with |Retry _ -> true|_ -> false)  
+      lines |> List.tryFindBack (function Retry _ -> true|_ -> false)  
         
   type SSEProcessingState =
     |Processing of SSELine list
