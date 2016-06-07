@@ -75,12 +75,14 @@ open FSharp.Control.Reactive
         { new IDisposable with
             member __.Dispose() = ct.Cancel() }
 
-    let repeatInfinite (delay:TimeSpan) (src:IObservable<_>) = seq{
+    let repeatDelay (delay:TimeSpan seq) (src:IObservable<_>) = seq{
         yield src
-        while true do yield src.DelaySubscription(delay)}
+        let en = delay.GetEnumerator()
+        while en.MoveNext() do
+          yield src.DelaySubscription(en.Current)}
 
-    let retryAfterDelay (delay:TimeSpan) (src:IObservable<_>)  =
-        src |> repeatInfinite delay |> Observable.catchSeq
+    let retryAfterDelay (delay:TimeSpan seq) (src:IObservable<_>)  =
+        src |> repeatDelay delay |> Observable.catchSeq
 
     let processStrings (obs:IObservable<_>) =
       obs |> Observable.scanInit (Processing [])
@@ -92,7 +94,7 @@ open FSharp.Control.Reactive
                     |None -> DispatchReady <| (lines |> List.rev)
                     |Some li -> Processing <| li::lines)
 
-    let receive (network:unit -> Stream) (retryDelay:TimeSpan option) =
+    let receive (network:unit -> Stream) (retryDelay:TimeSpan seq option) =
       let rec read (observer:IObserver<_>) (sr:StreamReader) = async {
         match (sr.ReadLine()) with
         | null -> observer.OnCompleted()
@@ -108,8 +110,8 @@ open FSharp.Control.Reactive
         |> processStrings
         |> Observable.filter SSEProcessingState.isReady
         |> Observable.map (SSEProcessingState.unwrap >> SSEEvent.fromLines)
-        |> retryAfterDelay (defaultArg retryDelay (TimeSpan.FromSeconds 0.))
+        |> retryAfterDelay (defaultArg retryDelay (Seq.initInfinite (fun _ -> TimeSpan.FromSeconds 0.)))
 
   type Connection =
-    static member Receive(network:unit -> Stream, ?retryDelay: TimeSpan) =
+    static member Receive(network:unit -> Stream, ?retryDelay: TimeSpan seq) =
       Observable.receive network retryDelay
