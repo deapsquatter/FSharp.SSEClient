@@ -5,6 +5,14 @@ open System.IO
 open System.Reactive.Linq
 open FSharp.Control.Reactive
 
+  module Array =
+    let tryFindBack f (array: _[]) =
+      let rec loop i =
+          if i < 0 then None
+          elif f array.[i] then Some array.[i]
+          else loop (i - 1)
+      loop (array.Length - 1)
+  
   type SSEData = SSEData of string
   [<CompilationRepresentation (CompilationRepresentationFlags.ModuleSuffix)>]
   module SSEData =
@@ -36,7 +44,7 @@ open FSharp.Control.Reactive
       |_ -> None
 
     let getIdLine lines =
-      lines |> List.tryFindBack (function Retry _ -> true|_ -> false)
+      lines |> List.toArray |> Array.tryFindBack (function Retry _ -> true|_ -> false)
 
   type SSEProcessingState =
     |Processing of SSELine list
