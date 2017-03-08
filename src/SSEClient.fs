@@ -102,12 +102,12 @@ open FSharp.Control.Reactive
                     |None -> DispatchReady <| (lines |> List.rev)
                     |Some li -> Processing <| li::lines)
 
-    let asyncReadLine (sr:StreamReader) timeOut =
+    let asyncReadLine (sr:TextReader) timeOut =
       let r = async{return sr.ReadLine()}
       Async.StartChild(r,defaultArg timeOut -1)
 
     let receive (network:unit -> Stream) (retryDelay:TimeSpan seq option) (timeOut:int option) =
-      let rec read (observer:IObserver<_>) (sr:StreamReader) = async {
+      let rec read (observer:IObserver<_>) sr = async {
         let! child = asyncReadLine sr timeOut
         let! line = child
         match line with
@@ -116,7 +116,7 @@ open FSharp.Control.Reactive
         return! read observer sr}
       let start obs = async {
         try
-          use sr = new StreamReader(network ())
+          use sr = TextReader.Synchronized(new StreamReader(network ()))
           return! read obs sr
         with |e -> obs.OnError e}
       Observable.Create (start >> startDisposable)
