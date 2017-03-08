@@ -113,7 +113,7 @@ open FSharp.Control.Reactive
         match line with
         | null -> observer.OnCompleted()
         | line -> observer.OnNext line
-        return! read observer sr}
+                  return! read observer sr}
       let start obs = async {
         try
           use sr = TextReader.Synchronized(new StreamReader(network ()))
