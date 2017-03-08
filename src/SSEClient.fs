@@ -102,21 +102,15 @@ open FSharp.Control.Reactive
                     |None -> DispatchReady <| (lines |> List.rev)
                     |Some li -> Processing <| li::lines)
 
-    let asyncReadLine (sr:TextReader) timeOut =
-      let r = async{return sr.ReadLine()}
-      Async.StartChild(r,defaultArg timeOut -1)
-
-    let receive (network:unit -> Stream) (retryDelay:TimeSpan seq option) (timeOut:int option) =
-      let rec read (observer:IObserver<_>) sr = async {
-        let! child = asyncReadLine sr timeOut
-        let! line = child
-        match line with
+    let receive (network:unit -> Stream) (retryDelay:TimeSpan seq option) =
+      let rec read (observer:IObserver<_>) (sr:StreamReader) = async {
+        match (sr.ReadLine ()) with
         | null -> observer.OnCompleted()
         | line -> observer.OnNext line
                   return! read observer sr}
       let start obs = async {
         try
-          use sr = TextReader.Synchronized(new StreamReader(network ()))
+          use sr = new StreamReader(network ())
           return! read obs sr
         with |e -> obs.OnError e}
       Observable.Create (start >> startDisposable)
@@ -127,5 +121,5 @@ open FSharp.Control.Reactive
         |> retryAfterDelay (defaultArg retryDelay (Seq.initInfinite (fun _ -> TimeSpan.FromSeconds 0.)))
 
   type Connection =
-    static member Receive(network:unit -> Stream, ?retryDelay: TimeSpan seq, ?timeOut: int) =
-      Observable.receive network retryDelay timeOut
+    static member Receive(network:unit -> Stream, ?retryDelay: TimeSpan seq) =
+      Observable.receive network retryDelay
