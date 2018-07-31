@@ -102,7 +102,7 @@ open FSharp.Control.Reactive
                     |None -> DispatchReady <| (lines |> List.rev)
                     |Some li -> Processing <| li::lines)
 
-    let receive (network:unit -> Stream) (retryDelay:TimeSpan seq option) =
+    let receive (network:unit -> Stream) =
       let rec read (observer:IObserver<_>) (sr:StreamReader) = async {
         match (sr.ReadLine ()) with
         | null -> observer.OnCompleted()
@@ -118,8 +118,7 @@ open FSharp.Control.Reactive
         |> processStrings
         |> Observable.filter SSEProcessingState.isReady
         |> Observable.map (SSEProcessingState.unwrap >> SSEEvent.fromLines)
-        |> retryAfterDelay (defaultArg retryDelay (Seq.initInfinite (fun _ -> TimeSpan.FromSeconds 0.)))
 
   type Connection =
-    static member Receive(network:unit -> Stream, ?retryDelay: TimeSpan seq) =
-      Observable.receive network retryDelay
+    static member Receive(network:unit -> Stream) =
+      Observable.receive network
